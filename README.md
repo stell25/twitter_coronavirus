@@ -1,187 +1,33 @@
 # Coronavirus twitter analysis
 
-You will scan all geotagged tweets sent in 2020 to monitor for the spread of the coronavirus on social media.
-
-**Learning Objectives:**
-
-1. work with large scale datasets
-1. work with multilingual text
-1. use the MapReduce divide-and-conquer paradigm to create parallel code
+I scaned all geotagged tweets sent in 2020 to monitor for the spread of the coronavirus on social media. This project utilizes the mapreduce divide-and-conquer paradigm process to analyze trends in the usage of coronavirus related hashtags by country and language. 
 
 ## Background
 
 **About the Data:**
-
-Approximately 500 million tweets are sent everyday.
-Of those tweets, about 2% are *geotagged*.
-That is, the user's device includes location information about where the tweets were sent from.
-The lambda server's `/data/Twitter dataset` folder contains all geotagged tweets that were sent in 2020.
-In total, there are about 1.1 billion tweets in this dataset.
-
-The tweets are stored as follows.
-The tweets for each day are stored in a zip file `geoTwitterYY-MM-DD.zip`,
-and inside this zip file are 24 text files, one for each hour of the day.
-Each text file contains a single tweet per line in JSON format.
-JSON is a popular format for storing data that is closely related to python dictionaries.
-
-Vim is able to open compressed zip files,
-and I encourage you to use vim to explore the dataset.
-For example, run the command
-```
-$ vim /data/Twitter\ dataset/geoTwitter20-01-01.zip
-```
-Or you can get a "pretty printed" interface with a command like
-```
-$ unzip -p /data/Twitter\ dataset/geoTwitter20-01-01.zip | head -n1 | python3 -m json.tool | vim -
-```
+The data was stored in our class's lambda server's `/data/Twitter dataset` folder, which contained all geotagged tweets that were sent in 2020. In total, there are about 1.1 billion tweets in this dataset.
 
 **About MapReduce:**
 
-You will follow the [MapReduce](https://en.wikipedia.org/wiki/MapReduce) procedure to analyze these tweets.
-MapReduce is a famous procedure for large scale parallel processing that is widely used in industry.
-It is a 3 step procedure summarized in the following image:
+I followed the [MapReduce](https://en.wikipedia.org/wiki/MapReduce) procedure to analyze these tweets.
 
-<img src=img/mapreduce.png width=100% />
-
-I have already done the partition step for you (by splitting up the tweets into one file per day).
-You will have to do the map and reduce steps.
-
-**MapReduce Runtime:**
-
-Let $n$ be the size of the dataset and $p$ be the number of processors used to do the computation.
-The simplest and most common scenario is that the map procedure takes time $O(n)$ and the reduce procedure takes time $O(1)$.
-(These will be the runtimes of our map/reduce procedures.)
-In this case, the overall runtime is $O(n/p + \log p)$.
-In the typical case when $p$ is much smaller than $n$,
-then the runtime simplifies to $O(n/p)$.
-This means that:
-1. doubling the amount of data will cause the analysis to take twice as long;
-1. doubling the number of processors will cause the analysis to take half as long;
-1. if you want to add more data and keep the processing time the same, then you need to add a proportional number of processors.
-
-More complex runtimes are possible.
-Merge sort over MapReduce is the classic example. 
-Here, mapping is equivalent to sorting and so takes time $O(n \log n)$,
-and reducing is a call to the `_merge` function that takes time $O(n)$.
-But they are both rare in practice and require careful math to describe,
-so we will ignore them.
-In the merge sort example, it requires $p=n$ processors just to reduce the runtime down to $O(n)$...
-that's a lot of additional computing power for very little gain,
-and so is impractical.
-
-It is currently not known which algorithms can be parallelized with MapReduce and which algorithms cannot be parallelized this way.
-Most computer scientists believe there are some algorithms which cannot be parallelized,
-but we don't yet have a proof that this is the case.
-In theoretical computer science, this problem is called the [$NC\stackrel{?}{=}P$ problem](https://en.wikipedia.org/wiki/NC_(complexity)),
-and is closely related to the more famous $P\stackrel{?}{=}NP$ problem.
-
-## Background Tasks
-
-We will walk through these steps in class.
-
-**Task 0: Setup**
-
-Fork this repo and clone it onto the lambda server.
-
-**Task 1: Map**
-
-In the [posix-mapreduce lab](https://github.com/mikeizbicki/lab-posix-mapreduce), you wrote a 1 line shell command that counts the number of tweets sent in each language on a particular day.
-It might have looked something like
+**1. Mapping**
+   The file `./src/map.py` processes each zip file with geotagged tweets, counting language and country of origin of tweets that utilize the specific hashtags. The output of `map.py` are two files, one that ends in `.lang` for the language dictionary, and one that ends in `.country` for the country dictionary.
+   The file `./src/reduce.py` takes as input the outputs from the `map.py` file above and reduces them together.
+    I created a shell script `run_maps.sh` that loops over each file in the dataset and runs `map.py` on that file, and used `reduce.py` to combine the outputs.
 ```
-$ unzip -p "$file" | jq '.lang' | sort | uniq -c | sort -n 
+$ python reduce.py --input_paths output_folder/geoTwitter*.lang --output_path=reduced.lang
 ```
-For this first task, you should translate this into python.
-The python file should be called `map.py` and be located in a folder `src`.
 
-The "disadvantage" of python is that it is more verbose.
-The advantage is that we can do more complicated data analysis problems.
+**2. Visualize**
 
-After creating the `map.py` file above,
-adjust it so that for each hashtag in the `./hashtags` file,
-it tracks how many tweets were sent in each language.
-
-> **NOTE:**
-> We didn't completely finish writing our `map.py` file in class.
-> A completed version is already in the git history of this repo, however,
-> and so it is in the `.git` folder of your cloned project.
-> You can checkout the file from the history and copy it into your working directory with the incantation
-> ```
-> $ git checkout bf76137 -- src/map.py
-> ```
-
-**Task 2: Reduce**
-
-Now write a python file `./src/reduce.py` that takes as input the outputs from the `map.py` file above and reduces them together.
-This file should do an element-wise addition of all the counts.
-
-> **NOTE:**
-> To get access to the reduce file, modify the git command in the previous note.
-> The file is located in the same commit.
-
-## Main Tasks
-
-Complete the following tasks:
-
-**Task 0: Create the mapper**
-
-Modify the `map.py` file so that it tracks the usage of the hashtags on both a language and country level.
-This will require creating a variable `counter_country` similar to the variable `counter_lang`, 
-and modifying this variable in the `#search hashtags` section of the code appropriately.
-The output of running `map.py` should be two files now, one that ends in `.lang` for the language dictionary (same as before),
-and one that ends in `.country` for the country dictionary.
-
-> **HINT:**
-> Most tweets contain a `place` key,
-> which contains a dictionary with the `country_code` key.
-> This is how you should lookup the country that a tweet was sent from.
-> Some tweets, however, do not have a `country_code` key.
-> This can happen, for example, if the tweet was sent from international waters or the [international space station](https://web.archive.org/web/20220124224726/https://unistellaroptics.com/10-years-ago-today-the-first-tweet-was-sent-directly-from-space/).
-> Your code will have to be generic enough to handle edge cases similar to this without failing.
-
-**Task 1: Run the mapper**
-
-> **HINT:**
-> You should thoroughly test your `map.py` file on a single day's worth of tweets and verify that you are getting reasonable results before moving on to this step.
-
-Create a shell script called `run_maps.sh`.
-This file will loop over each file in the dataset and run the `map.py` command on that file.
-Each call to `map.py` can take up to a day to finish, so you should use the `nohup` command to ensure the program continues to run after you disconnect and the `&` operator to ensure that all `map.py` commands run in parallel.
-
-> **HINT:**
-> Use the glob `*` to select only the tweets from 2020 and not all tweets.
-
-**Task 2: Reduce**
-
-> **HINT:**
-> You should manually inspect the output of your mapper code to ensure that it is reasonable and that you did not run into any error messages.
-> If you have errors above that you don't deal with,
-> then everything else below will be incorrect.
-
-After your modified `map.py` has run on all the files,
-you should have a large number of files in your `outputs` folder.
-Use the `reduce.py` file to combine all of the `.lang` files into a single file,
-and all of the `.country` files into a different file.
-
-**Task 3: Visualize**
-
-You can visualize your output files with the command
+I then used `visualize.py` to generate bar graphs of the results, running
 ```
-$ ./src/visualize.py --input_path=PATH --key=HASHTAG
+$ python visualize.py --input_path=PATH --key=HASHTAG
 ```
-Currently, this prints the top keys to stdout.
+I generated these four plots below.
 
-Modify the `visualize.py` file so that it generates a bar graph of the results and stores the bar graph as a png file.
-The horizontal axis of the graph should be the keys of the input file,
-and the vertical axis of the graph should be the values of the input file.
-The final results should be sorted from low to high, and you only need to include the top 10 keys.
-
-> **HINT:**
-> We are not covering how to create images from python code in this class.
-> I recommend you use the matplotlib library,
-> and you can find some samples to base your code off of [in the documentation here](https://matplotlib.org/3.1.1/tutorials/introductory/sample_plots.html).
-
-Then, run the `visualize.py` file with the `--input_path` equal to both the country and lang files created in the reduce phase, and the `--key` set to `#coronavirus` and `#코로나바이러스`.
-This should generate four plots in total.
+<img src=corona_plot.png />
 
 **Task 4: Alternative Reduce**
 
