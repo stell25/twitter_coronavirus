@@ -27,6 +27,14 @@ $ python visualize.py --input_path=PATH --key=HASHTAG
 ```
 I generated these four plots below.
 
+<img src="reduced.country%23coronavirus.png" />
+
+<img src="reduced.country%23코로나바이러스.png" />
+
+<img src="reduced.lang%23coronavirus.png" />
+
+<img src="reduced.lang%23코로나바이러스.png" />
+
 <img src=corona_plot.png />
 
 **Task 4: Alternative Reduce**
