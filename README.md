@@ -35,64 +35,12 @@ I generated these four plots below.
 
 <img src="reduced.lang%23코로나바이러스.png" />
 
-<img src=corona_plot.png />
-
 **Task 4: Alternative Reduce**
 
-Create a new file `alternative_reduce.py`.
-This file should take as input on the command line a list of hashtags,
-and output a line plot where:
-1. There is one line per input hashtag.
-1. The x-axis is the day of the year.
-1. The y-axis is the number of tweets that use that hashtag during the year.
+I also used `alternative_reduce.py` to generate a plot that shows the daily trends of the use of certain hashtags over 2020, running
+```
+$ python3 alternative_reduce.py "HASHTAG" --data_dir=OUTPUT_FOLDER --output_path=OUTPUT_NAME
+```
 
-Your `alternative_reduce.py` file have to follow a similar structure to a combined version of the `reduce.py` and `visualize.py` files.
-First, you will scan through all of the data in the `outputs` folder created by the mapping step.
-In this scan, you will construct a dataset that contains the information that you need to plot.
-Then, after you have extracted this information,
-you should call the appropriate matplotlib functions to plot the data.
+<img src=corona_plot.png />
 
-> **HINT:**
-> The specifications for this program and plot are intentionally underspecified
-> (similar to how many real-world problems are underspecified).
-> Feel free to ask clarifying questions.
-
-**Task 5: Uploading**
-
-Commit all of your code and images output files to your github repo and push the results to github.
-You must:
-1. Delete the current contents of the `README.md` file
-1. Insert into the `README.md` file a brief explanation of your project, including the 4 generated png files.
-    This explanation should be suitable for a future employer to look at while they are interviewing you to get a rough idea of what you accomplished.
-    (And you should tell them about this in your interviews!)
-
-## Submission
-
-Upload a link to you github repository on sakai.
-I will look at your code and visualization to determine your grade.
-
-**Grading:**
-
-The assignment is worth 32 points:
-
-1. 8 points for getting the map/reduce to work
-1. 8 points for your repo/readme file
-1. 8 points for Task 3 plots
-1. 8 points for Task 4 plots
-
-The most common ways to miss points are:
-1. having incorrect data plotted (because the map program didn't finish running on all of the inputs)
-1. having illegible plots that are not "reasonably" formatted
-
-Notice that we are not using CI to grade this assignment.
-There's two reasons:
-
-1. You can get slightly different numbers depending on some of the design choices you make in your code.
-    For example, should the term `corona` count tweets that contain `coronavirus` as well as tweets that contain just `corona`?
-    These are relatively insignificant decisions.
-    I'm more concerned with your ability to write a shell script and use `nohup`, `&`, and other process control tools effectively.
-
-1. The dataset is too large to upload to github actions.
-    In general, writing test cases for large data analysis tasks is tricky and rarely done.
-    Writing correct code without test cases is hard,
-    and so many (most?) analysis of large datasets contain lots of bugs.
